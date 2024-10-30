@@ -26,7 +26,7 @@
       <tr>
         <td><?php echo $wpdb->get_var("SELECT COUNT(*) FROM $hosts_table"); ?></td>
         <td><?php echo $wpdb->get_var("SELECT COUNT(*) FROM $offers_table"); ?></td>
-        <td><?php echo $wpdb->get_var("SELECT COUNT(*) FROM $subscriptionss_table"); ?></td>
+        <td><?php echo $wpdb->get_var("SELECT COUNT(*) FROM $subscriptions_table"); ?></td>
       </tr>
     </tbody>
   </table>

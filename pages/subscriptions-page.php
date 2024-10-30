@@ -23,6 +23,41 @@
 //   $item = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE id = %d", $id));
 // }
 
+// $activate = isset($_GET['activate']) ? intval($_GET['activate']) : null;
+// $cancel = isset($_GET['cancel']) ? intval($_GET['cancel']) : null;
+
+// if ($activate) {
+//   $subscription = $wpdb->get_results("SELECT * FROM $table_name WHERE id = $activate");
+//   if (!current_user_can('manage_options')) {
+//     echo '<div class="notice notice-error is-dismissible"><p>You do not have permission to activate a deactivated subscription.</p></div>';
+//     return;
+//   } elseif (empty($subscription)) {
+//     echo '<div class="notice notice-error is-dismissible"><p>Subscription #' . $activate . ' not found.</p></div>';
+//     return;
+//   } elseif ($subscription[0]->status == 'activate') {
+//     echo '<div class="notice notice-error is-dismissible"><p>Subscription #' . $activate . ' is already activate.</p></div>';
+//     return;
+//   } else {
+//     $wpdb->query("UPDATE $table_name SET `status` = 'activate' WHERE id = $activate");
+//     echo '<div class="notice notice-success is-dismissible"><p>Subscription #' . $activate . ' activated successfully.</p></div>';
+//   }
+// } elseif ($cancel) {
+//   $subscription = $wpdb->get_results("SELECT * FROM $table_name WHERE id = $cancel");
+//   if (!current_user_can('manage_options')) {
+//     echo '<div class="notice notice-error is-dismissible"><p>You do not have permission to cancel a subscription.</p></div>';
+//     return;
+//   } elseif (empty($subscription)) {
+//     echo '<div class="notice notice-error is-dismissible"><p>Subscription #' . $cancel . ' not found.</p></div>';
+//     return;
+//   } elseif ($subscription[0]->status == 'deactivated') {
+//     echo '<div class="notice notice-error is-dismissible"><p>Subscription #' . $cancel . ' is already deactivated.</p></div>';
+//     return;
+//   } else {
+//     $wpdb->query("UPDATE $table_name SET `status` = 'deactivated' WHERE id = $cancel");
+//     echo '<div class="notice notice-success is-dismissible"><p>Subscription #' . $cancel . ' deactivated successfully.</p></div>';
+//   }
+// }
+
 ?>
 
 <div class="wrap">
@@ -63,14 +98,14 @@
         <th><label for="status">Status</label></th>
         <td>
           <select name="status" id="status">
-            <option value="active" <?php selected(isset($item) && $item->status == "active"); ?>>
-              Active
+            <option value="activate" <?php selected(isset($item) && $item->status == "activate"); ?>>
+              Activate
             </option>
             <option value="expired" <?php selected(isset($item) && $item->status == "expired"); ?>>
               Expired
             </option>
-            <option value="canceled" <?php selected(isset($item) && $item->status == "canceled"); ?>>
-              Canceled
+            <option value="deactivated" <?php selected(isset($item) && $item->status == "deactivated"); ?>>
+              Deactivated
             </option>
           </select>
         </td>

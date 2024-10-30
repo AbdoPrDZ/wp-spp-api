@@ -202,11 +202,11 @@ function error($errors, $target) {
         <th><label for="status">Status</label></th>
         <td>
           <select name="status" id="status">
-            <option value="active" <?php selected(isset($item) && $item->status == "active"); ?>>
-              Active
+            <option value="activate" <?php selected(isset($item) && $item->status == "activate"); ?>>
+              Activate
             </option>
-            <option value="canceled" <?php selected(isset($item) && $item->status == "canceled"); ?>>
-              Canceled
+            <option value="deactivated" <?php selected(isset($item) && $item->status == "deactivated"); ?>>
+              Deactivated
             </option>
           </select>
         </td>

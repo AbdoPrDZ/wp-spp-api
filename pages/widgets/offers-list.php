@@ -33,7 +33,7 @@
         echo '- ' . esc_html($price->name) . ' for <span class="success">' . esc_html($price->amount) . 'DZD</span> per ' . esc_html($price->period);
       }
       echo '</td>';
-      echo '<td>' . esc_html(['active' => 'Active', 'canceled' => 'Canceled'][$row->status]) . '</td>';
+      echo '<td>' . esc_html(['activate' => 'Activate', 'deactivated' => 'Deactivated'][$row->status]) . '</td>';
       echo '<td>' . esc_html($row->created_at) . '</td>';
       echo '<td>
         <a href="' . admin_url('admin.php?page=manage-offers&edit=' . $row->id) . '" class="button">Edit</a> |

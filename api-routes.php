@@ -134,7 +134,8 @@ function get_offers() {
 																			 `hosts`.`name` as `host_name`,
 																			 `hosts`.`preview_image_url` as `host_preview_image_url`
 																		FROM `$table_name` `offers`
-																LEFT JOIN `$hosts_table` `hosts` ON `offers`.`host_id` = `hosts`.`id`");
+																LEFT JOIN `$hosts_table` `hosts` ON `offers`.`host_id` = `hosts`.`id`
+                                WHERE `offers`.`status` = 'activate'");
 
 	return rest_ensure_response([
 		'message' => 'Offers fetched successfully',
@@ -170,18 +171,20 @@ function get_subscriptions() {
 
 	$table_name = $wpdb->prefix . 'spp_subscriptions';
 	$hosts_table = $wpdb->prefix . 'spp_hosts';
+	$offers_table = $wpdb->prefix . 'spp_offers';
 	$users_table = $wpdb->prefix . 'users';
 
-	$subscriptions = $wpdb->get_results("SELECT `subscriptions`.*,
-																			 `hosts`.`name` as `host_name`,
-																			 `hosts`.`description` as `host_description`,
-																			 `hosts`.`preview_image_url` as `host_preview_image_url`,
-																			 `hosts`.`host` as `host_url`,
-																			 `hosts`.`blocked_routes` as `host_blocked_routes`,
-																			 `users`.`display_name` as `user_name`
-																		FROM `$table_name` `subscriptions`
-																LEFT JOIN `$hosts_table` `hosts` ON `subscriptions`.`host_id` = `hosts`.`id`
-																LEFT JOIN `$users_table` `users` ON `subscriptions`.`user_id` = `users`.`ID`");
+  $subscriptions = $wpdb->get_results("SELECT `subscriptions`.*,
+                                        `hosts`.`name` as `host_name`,
+                                        `hosts`.`description` as `host_description`,
+                                        `hosts`.`preview_image_url` as `host_preview_image_url`,
+                                        `hosts`.`host` as `host_url`,
+                                        `hosts`.`blocked_routes` as `host_blocked_routes`,
+                                        `users`.`display_name` as `user_name`
+                                    FROM `$table_name` `subscriptions`
+                                LEFT JOIN `$offers_table` `offers` ON `subscriptions`.`offer_id` = `offers`.`id`
+                                LEFT JOIN `$hosts_table` `hosts` ON `offers`.`host_id` = `hosts`.`id`
+                                LEFT JOIN `$users_table` `users` ON `subscriptions`.`user_id` = `users`.`ID`");
 
 	return rest_ensure_response([
 		'message' => 'Subscriptions fetched successfully',
@@ -194,13 +197,15 @@ function get_subscription_cookies(WP_REST_Request $request) {
 
 	$table_name = $wpdb->prefix . 'spp_subscriptions';
 	$hosts_table = $wpdb->prefix . 'spp_hosts';
+	$offers_table = $wpdb->prefix . 'spp_offers';
 
 	$subscription_id = intval($request->get_param('id'));
 	$subscription = $wpdb->get_row($wpdb->prepare(
 		"SELECT `hosts`.`cookie`
-		 FROM `$table_name` `subscriptions`
-		 LEFT JOIN `$hosts_table` `hosts` ON `subscriptions`.`host_id` = `hosts`.`id`
-		 WHERE `subscriptions`.`id` = %d",
+    FROM `$table_name` `subscriptions`
+    LEFT JOIN `$offers_table` `offers` ON `subscriptions`.`offer_id` = `offers`.`id`
+    LEFT JOIN `$hosts_table` `hosts` ON `offers`.`host_id` = `hosts`.`id`
+    WHERE `subscriptions`.`id` = %d",
 		$subscription_id
 	));
 

@@ -34,7 +34,7 @@
       echo '<td>' . esc_html($row->description) . '</td>';
       echo '<td>' . esc_html($row->created_at) . '</td>';
       echo '<td>
-        <a href="' . admin_url('admin.php?page=wp-spp-api&edit=' . $row->id) . '" class="button">Edit</a> |
+        <a href="' . admin_url('admin.php?page=manage-hosts&edit=' . $row->id) . '" class="button">Edit</a> |
         <form method="post" style="display:inline;">
           <input type="hidden" name="action" value="delete">
           <input type="hidden" name="id" value="' . esc_attr($row->id) . '">

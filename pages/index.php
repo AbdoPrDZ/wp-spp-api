@@ -68,7 +68,9 @@ function hosts_page_content() {
 				$preview_image_url = sanitize_textarea_field($_POST['preview_image_url']);
 				// $cookie = sanitize_text_field($_POST['cookie']);
 				$cookie = $_POST['cookie'];
+        $cookie = empty($cookie) ? null : $cookie;
         $blocked_routes = sanitize_textarea_field($_POST['blocked_routes']);
+        $blocked_routes = empty($blocked_routes) ? null : $blocked_routes;
 				$description = sanitize_textarea_field($_POST['description']);
 				$wpdb->insert($table_name, compact('name', 'host', 'preview_image_url', 'cookie', 'blocked_routes', 'description'));
 				break;
@@ -81,7 +83,9 @@ function hosts_page_content() {
 				$preview_image_url = sanitize_textarea_field($_POST['preview_image_url']);
 				// $cookie = sanitize_textarea_field($_POST['cookie']);
 				$cookie = $_POST['cookie'];
+        $cookie = empty($cookie) ? null : $cookie;
         $blocked_routes = sanitize_textarea_field($_POST['blocked_routes']);
+        $blocked_routes = empty($blocked_routes) ? null : $blocked_routes;
 				$description = sanitize_textarea_field($_POST['description']);
 				$wpdb->update($table_name, compact('name', 'host', 'preview_image_url', 'cookie', 'blocked_routes', 'description'), ['id' => $id]);
 				break;
