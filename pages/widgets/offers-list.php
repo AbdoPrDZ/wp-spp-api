@@ -2,6 +2,7 @@
   global $wpdb;
   $table_name = $wpdb->prefix . 'spp_offers';
   $hosts_table = $wpdb->prefix . 'spp_hosts';
+  $prices_table = $wpdb->prefix . 'spp_prices';
 ?>
 
 <h2>Offers List</h2>
@@ -27,12 +28,12 @@
       echo '<td>' . esc_html($row->id) . '</td>';
       echo '<td>' . esc_html($row->host_name) . '</td>';
       echo '<td>' . esc_html($row->description) . '</td>';
-      echo '<td>';
-      $prices = json_decode($row->prices);
+      echo '<td><ul>';
+      $prices = $wpdb->get_results($wpdb->prepare("SELECT * FROM $prices_table WHERE offer_id = %d", $row->id));
       foreach ($prices as $price) {
-        echo '- ' . esc_html($price->name) . ' for <span class="success">' . esc_html($price->amount) . 'DZD</span> per ' . esc_html($price->period);
+        echo '<li>- ' . esc_html($price->name) . ' for <span class="success">' . esc_html($price->amount) . 'DZD</span> per ' . esc_html($price->period) . '</li>';
       }
-      echo '</td>';
+      echo '</ul></td>';
       echo '<td>' . esc_html(['activate' => 'Activate', 'deactivated' => 'Deactivated'][$row->status]) . '</td>';
       echo '<td>' . esc_html($row->created_at) . '</td>';
       echo '<td>

@@ -104,6 +104,7 @@ function hosts_page_content() {
 function offers_page_content() {
 	global $wpdb;
 	$table_name = $wpdb->prefix . 'spp_offers';
+	$prices_table = $wpdb->prefix . 'spp_prices';
 
 	// Handle form submission for adding/editing/deleting offers
 	if (isset($_POST['action'])) {
@@ -115,14 +116,21 @@ function offers_page_content() {
 				$description = sanitize_textarea_field($_POST['description']);
 				$pricesText = wp_unslash($_POST['prices']); // Remove slashes from input if magic quotes are enabled
         $pricesText = htmlspecialchars_decode($pricesText); // Decode any HTML entities
-				$prices = json_decode($pricesText);
+				$prices = (array) json_decode($pricesText);
 				if (json_last_error() !== JSON_ERROR_NONE) {
 					$errors['prices'] = 'Invalid JSON format in prices field "' . $pricesText .'"';
 					break;
 				}
-        $prices = json_encode($prices);
 				$status = sanitize_text_field($_POST['status']);
-				$wpdb->insert($table_name, compact('host_id', 'description', 'prices', 'status'));
+
+        $id = $wpdb->insert($table_name, compact('host_id', 'description', 'status'));
+
+        foreach ($prices as $price) {
+          $price = (array) $price;
+          $price['offer_id'] = $id;
+          $wpdb->insert($prices_table, $price);
+        }
+
 				break;
 
 			case 'edit':
@@ -132,14 +140,22 @@ function offers_page_content() {
 				$description = sanitize_textarea_field($_POST['description']);
 				$pricesText = wp_unslash($_POST['prices']); // Remove slashes from input if magic quotes are enabled
         $pricesText = htmlspecialchars_decode($pricesText); // Decode any HTML entities
-				$prices = json_decode($pricesText);
+				$prices = (array) json_decode($pricesText);
 				if (json_last_error() !== JSON_ERROR_NONE) {
 					$errors['prices'] = 'Invalid JSON format in prices field "' . $pricesText .'"';
 					break;
 				}
-        $prices = json_encode($prices);
 				$status = sanitize_text_field($_POST['status']);
-				$wpdb->update($table_name, compact('host_id', 'description', 'prices', 'status'), ['id' => $id]);
+
+				$wpdb->update($table_name, compact('host_id', 'description', 'status'), ['id' => $id]);
+
+        $wpdb->delete($prices_table, ['offer_id' => $id]);
+        foreach ($prices as $price) {
+          $price = (array) $price;
+          $price['offer_id'] = $id;
+          $wpdb->insert($prices_table, $price);
+        }
+
 				break;
 
 			case 'delete':
@@ -154,38 +170,38 @@ function offers_page_content() {
 }
 
 function subscriptions_page_content() {
-	global $wpdb;
-	$table_name = $wpdb->prefix . 'spp_subscriptions';
+	// global $wpdb;
+	// $table_name = $wpdb->prefix . 'spp_subscriptions';
 
 	// Handle form submission for adding/editing/deleting subscriptions
-	if (isset($_POST['action'])) {
-    $errors = [];
-		switch ($_POST['action']) {
-			case 'add':
-        if (!validate_fields(['host_id', 'user_id', 'status', 'expired_at'], $errors)) break;
-				$host_id = intval($_POST['host_id']);
-				$user_id = intval($_POST['user_id']);
-				$status = sanitize_textarea_field($_POST['status']);
-				$expired_at = sanitize_text_field($_POST['expired_at']);
-				$wpdb->insert($table_name, compact('host_id', 'user_id', 'expired_at', 'status'));
-				break;
+	// if (isset($_POST['action'])) {
+  //   $errors = [];
+	// 	switch ($_POST['action']) {
+	// 		case 'add':
+  //       if (!validate_fields(['host_id', 'user_id', 'status', 'expired_at'], $errors)) break;
+	// 			$host_id = intval($_POST['host_id']);
+	// 			$user_id = intval($_POST['user_id']);
+	// 			$status = sanitize_textarea_field($_POST['status']);
+	// 			$expired_at = sanitize_text_field($_POST['expired_at']);
+	// 			$wpdb->insert($table_name, compact('host_id', 'user_id', 'expired_at', 'status'));
+	// 			break;
 
-			case 'edit':
-        if (!validate_fields(['id', 'host_id', 'user_id', 'status', 'expired_at'], $errors)) break;
-				$id = intval($_POST['id']);
-				$host_id = intval($_POST['host_id']);
-				$user_id = intval($_POST['user_id']);
-				$status = sanitize_textarea_field($_POST['status']);
-				$expired_at = sanitize_text_field($_POST['expired_at']);
-				$wpdb->update($table_name, compact('host_id', 'user_id', 'expired_at', 'status'), ['id' => $id]);
-				break;
+	// 		case 'edit':
+  //       if (!validate_fields(['id', 'host_id', 'user_id', 'status', 'expired_at'], $errors)) break;
+	// 			$id = intval($_POST['id']);
+	// 			$host_id = intval($_POST['host_id']);
+	// 			$user_id = intval($_POST['user_id']);
+	// 			$status = sanitize_textarea_field($_POST['status']);
+	// 			$expired_at = sanitize_text_field($_POST['expired_at']);
+	// 			$wpdb->update($table_name, compact('host_id', 'user_id', 'expired_at', 'status'), ['id' => $id]);
+	// 			break;
 
-			case 'delete':
-				$id = intval($_POST['id']);
-				$wpdb->delete($table_name, ['id' => $id]);
-				break;
-		}
-	}
+	// 		case 'delete':
+	// 			$id = intval($_POST['id']);
+	// 			$wpdb->delete($table_name, ['id' => $id]);
+	// 			break;
+	// 	}
+	// }
 
 	// Display the form and the list of subscriptions
 	include 'subscriptions-page.php';

@@ -4,6 +4,7 @@ global $wpdb;
 
 $table_name = $wpdb->prefix . 'spp_offers';
 $hosts_table = $wpdb->prefix . 'spp_hosts';
+$prices_table = $wpdb->prefix . 'spp_prices';
 $capabilities_table = $wpdb->prefix . 'capabilities';
 
 // Fetch the list of hosts
@@ -13,6 +14,12 @@ $hosts = $wpdb->get_results("SELECT id, name FROM $hosts_table");
 if (isset($_GET['edit'])) {
   $id = intval($_GET['edit']);
   $item = $wpdb->get_row($wpdb->prepare("SELECT * FROM $table_name WHERE id = %d", $id));
+
+  if ($item) {
+    $prices = $wpdb->get_results($wpdb->prepare("SELECT * FROM $prices_table WHERE offer_id = %d", $item->id));
+    $item->prices = json_encode($prices);
+  } else
+    echo '<div class="notice notice-error is-dismissible"><p>Offer #' . $id . ' not found.</p></div>';
 }
 
 $errors = isset($errors) ? $errors : [];
@@ -119,15 +126,17 @@ function error($errors, $target) {
                 const name = nameEl.value;
                 const description = descriptionEl.value;
                 const amount = amountEl.value;
-                const featuresText = featuresEl.value;
+                // const featuresText = featuresEl.value;
+                const features = featuresEl.value;
                 const period = periodEl.value;
 
-                if (!name || !amount || !description || !featuresText || !period) {
+                // if (!name || !amount || !description || !featuresText || !period) {
+                if (!name || !amount || !description || !features || !period) {
                   alert('Please fill all fields');
                   return;
                 }
 
-                const features = featuresText.split('\n').map(f => f.trim()).filter(f => f);
+                // const features = featuresText.split('\n').map(f => f.trim()).filter(f => f);
 
                 const prices = JSON.parse(document.getElementById('prices').value);
                 prices.push({ name: name, description: description, amount: amount, features: features, period: period });

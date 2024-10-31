@@ -137,6 +137,11 @@ function get_offers() {
 																LEFT JOIN `$hosts_table` `hosts` ON `offers`.`host_id` = `hosts`.`id`
                                 WHERE `offers`.`status` = 'activate'");
 
+  for ($i = 0; $i < count($offers); $i++) {
+    $prices = $wpdb->get_results($wpdb->prepare("SELECT * FROM `{$wpdb->prefix}spp_prices` WHERE `offer_id` = %d", $offers[$i]->id));
+    $offers[$i]->prices = $prices;
+  }
+
 	return rest_ensure_response([
 		'message' => 'Offers fetched successfully',
 		'offers' => $offers,
@@ -157,9 +162,9 @@ function subscribe_to_offer(WP_REST_Request $request) {
   }
 
   $user_id = get_current_user_id();
-  $price = floatval($request->get_param('price'));
+  $price_id = intval($request->get_param('price_id'));
 
-  $wpdb->insert($table_name, compact('user_id', 'offer_id', 'price'));
+  $wpdb->insert($table_name, compact('user_id', 'offer_id', 'price_id'));
 
   return rest_ensure_response([
     'message' => 'Subscribed successfully',
@@ -184,7 +189,9 @@ function get_subscriptions() {
                                     FROM `$table_name` `subscriptions`
                                 LEFT JOIN `$offers_table` `offers` ON `subscriptions`.`offer_id` = `offers`.`id`
                                 LEFT JOIN `$hosts_table` `hosts` ON `offers`.`host_id` = `hosts`.`id`
-                                LEFT JOIN `$users_table` `users` ON `subscriptions`.`user_id` = `users`.`ID`");
+                                LEFT JOIN `$users_table` `users` ON `subscriptions`.`user_id` = `users`.`ID`
+                                WHERE `subscriptions`.`user_id` = " . get_current_user_id() .
+                                " ORDER BY `subscriptions`.`created_at` DESC");
 
 	return rest_ensure_response([
 		'message' => 'Subscriptions fetched successfully',
@@ -201,15 +208,28 @@ function get_subscription_cookies(WP_REST_Request $request) {
 
 	$subscription_id = intval($request->get_param('id'));
 	$subscription = $wpdb->get_row($wpdb->prepare(
-		"SELECT `hosts`.`cookie`
+		"SELECT `subscriptions`.*, `hosts`.`cookie`
     FROM `$table_name` `subscriptions`
     LEFT JOIN `$offers_table` `offers` ON `subscriptions`.`offer_id` = `offers`.`id`
     LEFT JOIN `$hosts_table` `hosts` ON `offers`.`host_id` = `hosts`.`id`
-    WHERE `subscriptions`.`id` = %d",
-		$subscription_id
+    WHERE `subscriptions`.`id` = %d
+      AND `subscriptions`.`user_id` = %d",
+		$subscription_id, get_current_user_id()
 	));
 
 	if ($subscription) {
+    if ($subscription->status == 'expired') {
+      return new WP_Error('subscription_pending', 'Subscription expired', ['status' => 400]);
+    } elseif (($subscription->expired_at && $subscription->expired_at < date('Y-m-d H:i:s')) || $subscription->status == 'expired') {
+      if ($subscription->status != 'expired') {
+        $wpdb->update($table_name, ['status' => 'expired'], ['id' => $subscription_id]);
+      }
+      return new WP_Error('subscription_expired', 'Subscription expired', ['status' => 400]);
+    } elseif ($subscription->status == 'pending') {
+      return new WP_Error('subscription_pending', 'Subscription pending', ['status' => 400]);
+    } elseif ($subscription->status == 'deactivate') {
+      return new WP_Error('subscription_deactivated', 'Subscription deactivated', ['status' => 400]);
+    }
 		return rest_ensure_response([
 			'message' => 'Subscription cookies fetched successfully',
 			'cookie' => $subscription->cookie,
