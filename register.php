@@ -13,7 +13,7 @@ function create_hosts_table() {
 		`host` VARCHAR(255) NOT NULL,
 		`preview_image_url` VARCHAR(255) DEFAULT NULL,
 		`cookie` TEXT DEFAULT NULL,
-		`blocked_routes` TEXT DEFAULT NULL,
+		`blocked_urls` TEXT DEFAULT NULL,
 		`description` TEXT NOT NULL,
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -89,7 +89,8 @@ function create_subscriptions_table() {
 		`offer_id` BIGINT NOT NULL,
 		`expired_at` DATETIME DEFAULT NULL,
 		`price_id` BIGINT NOT NULL,
-		`status` ENUM('pending', 'activate', 'expired', 'deactivated') NOT NULL DEFAULT 'pending',
+    `proof_path` VARCHAR(255) DEFAULT NULL,
+		`status` ENUM('waiting_proof', 'verifing_proof', 'activate', 'expired', 'deactivated') NOT NULL DEFAULT 'waiting_proof',
     `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     `updated_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 		PRIMARY KEY (`id`),
@@ -109,5 +110,14 @@ function register_plugin() {
   create_offers_table();
   create_prices_table();
   create_subscriptions_table();
+
+  // add the default options
+  add_option('ccp_rip', '');
+  add_option('paypal_email', '');
+  add_option('paysera_email', '');
+
+  // create uploads directory
+  if (!file_exists(WP_SPP_API_UPLOAD_DIR))
+    wp_mkdir_p(WP_SPP_API_UPLOAD_DIR);
 }
 register_activation_hook(WP_SPP_API_FILE, 'register_plugin');

@@ -11,8 +11,7 @@
       <th>Name</th>
       <th>Host Target</th>
       <th>Host Preview Image</th>
-      <th>Host Cookie</th>
-      <th>Blocked routes</th>
+      <th>Blocked urls</th>
       <th>Description</th>
       <th>Created At</th>
       <th>Actions</th>
@@ -27,10 +26,9 @@
       echo '<tr>';
       echo '<td>' . esc_html($row->id) . '</td>';
       echo '<td>' . esc_html($row->name) . '</td>';
-      echo '<td>' . esc_html($row->host) . '</td>';
-      echo '<td>' . esc_html(empty($row->preview_image_url) ? 'None' : $row->preview_image_url) . '</td>';
-      echo '<td>' . esc_html(empty($row->cookie) ? 'None' : substr($row->cookie, 0, 50) . "...") . '</td>';
-      echo '<td>' . esc_html(empty($row->blocked_routes) ? 'None' : $row->blocked_routes) . '</td>';
+      echo "<td><a href=\"$row->host\">$row->host</a></td>";
+      echo '<td>' . (empty($row->preview_image_url) ? esc_html('None') : "<img src=\"$row->preview_image_url\">") . '</td>';
+      echo '<td>' . esc_html(empty($row->blocked_urls) ? 'None' : (count(explode("\n", $row->blocked_urls)) . " blocked url")) . '</td>';
       echo '<td>' . esc_html($row->description) . '</td>';
       echo '<td>' . esc_html($row->created_at) . '</td>';
       echo '<td>

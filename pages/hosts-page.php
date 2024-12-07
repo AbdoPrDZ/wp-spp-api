@@ -67,10 +67,10 @@ function error($errors, $target) {
         </td>
       </tr>
       <tr>
-        <th><label for="blocked-routes">Blocked routes</label></th>
+        <th><label for="blocked-urls">Blocked urls</label></th>
         <td>
-          <textarea name="blocked_routes" id="blocked-routes" class="large-text"><?php echo isset($item) ? esc_textarea($item->blocked_routes) : ''; ?></textarea>
-          <?php if ($error = error($errors, 'blocked_routes')) : ?>
+          <textarea name="blocked_urls" id="blocked-urls" class="large-text"><?php echo isset($item) ? esc_textarea($item->blocked_urls) : ''; ?></textarea>
+          <?php if ($error = error($errors, 'blocked_urls')) : ?>
             <p class="description error"><?php echo $error; ?></p>
           <?php endif; ?>
         </td>

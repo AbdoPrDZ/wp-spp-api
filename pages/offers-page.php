@@ -107,7 +107,7 @@ function error($errors, $target) {
                     <span><?php echo $price->description; ?></span>
                     <span><?php echo $price->amount; ?></span>
                     <span><?php echo $price->period; ?></span>
-                    <span><?php echo implode(', ', $price->features); ?></span>
+                    <span><?php echo $price->features; ?></span>
                     <button type="button" onclick="removePrice(this)">
                       <i class="fas fa-trash-alt""></i>
                     </button>
@@ -126,17 +126,13 @@ function error($errors, $target) {
                 const name = nameEl.value;
                 const description = descriptionEl.value;
                 const amount = amountEl.value;
-                // const featuresText = featuresEl.value;
                 const features = featuresEl.value;
                 const period = periodEl.value;
 
-                // if (!name || !amount || !description || !featuresText || !period) {
                 if (!name || !amount || !description || !features || !period) {
                   alert('Please fill all fields');
                   return;
                 }
-
-                // const features = featuresText.split('\n').map(f => f.trim()).filter(f => f);
 
                 const prices = JSON.parse(document.getElementById('prices').value);
                 prices.push({ name: name, description: description, amount: amount, features: features, period: period });
@@ -147,9 +143,9 @@ function error($errors, $target) {
                     <span>${description}</span>
                     <span>${amount}</span>
                     <span>${period}</span>
-                    <span>${features.join(', ')}</span>
+                    <span>${features.split('\n').map(f => f.trim()).filter(f => f).join(', ')}</span>
                     <button type="button" onclick="removePrice(this)">
-                      <i class="fas fa-trash-alt""></i>
+                      <i class="fas fa-trash-alt"></i>
                     </button>
                   </li>
                 `;

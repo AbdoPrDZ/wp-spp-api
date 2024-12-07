@@ -2,37 +2,37 @@
 
 function attach_menu() {
   add_menu_page(
-		'WP SPP API',          // Page title
-		'SPP Hosts',             // Menu title
-		'manage_options',        // Capability
-		'wp-spp-api',          // Menu slug
+		'WP SPP API',           // Page title
+		'SPP Hosts',            // Menu title
+		'manage_options',       // Capability
+		'wp-spp-api',           // Menu slug
 		'home_page_content',    // Callback function
-		'dashicons-networking',  // Dashicon class
-		6                        // Position
+		'dashicons-networking', // Dashicon class
+		6                       // Position
 	);
 	add_submenu_page(
-		'wp-spp-api',           // Parent slug
-		'Manage Hosts',           // Page title
-		'Hosts',                  // Menu title
-		'manage_options',         // Capability
-		'manage-hosts',          // Menu slug
-		'hosts_page_content'     // Callback function
+		'wp-spp-api',        // Parent slug
+		'Manage Hosts',      // Page title
+		'Hosts',             // Menu title
+		'manage_options',    // Capability
+		'manage-hosts',      // Menu slug
+		'hosts_page_content' // Callback function
 	);
 	add_submenu_page(
-		'wp-spp-api',           // Parent slug
-		'Manage Offers',           // Page title
-		'Offers',                  // Menu title
-		'manage_options',         // Capability
-		'manage-offers',          // Menu slug
-		'offers_page_content'     // Callback function
+		'wp-spp-api',         // Parent slug
+		'Manage Offers',      // Page title
+		'Offers',             // Menu title
+		'manage_options',     // Capability
+		'manage-offers',      // Menu slug
+		'offers_page_content' // Callback function
 	);
 	add_submenu_page(
-		'wp-spp-api',           // Parent slug
-		'Manage Subscriptions',           // Page title
-		'Subscriptions',                  // Menu title
-		'manage_options',         // Capability
-		'manage-subscriptions',          // Menu slug
-		'subscriptions_page_content'     // Callback function
+		'wp-spp-api',                // Parent slug
+		'Manage Subscriptions',      // Page title
+		'Subscriptions',             // Menu title
+		'manage_options',            // Capability
+		'manage-subscriptions',      // Menu slug
+		'subscriptions_page_content' // Callback function
 	);
 }
 add_action('admin_menu', 'attach_menu');
@@ -49,6 +49,14 @@ function validate_fields($fields, &$errors) {
 }
 
 function home_page_content() {
+  // Save the payment information
+  if (isset($_POST['ccp_rip']))
+    update_option('ccp_rip', sanitize_text_field($_POST['ccp_rip']));
+  if (isset($_POST['paypal_email']))
+    update_option('paypal_email', sanitize_text_field($_POST['paypal_email']));
+  if (isset($_POST['paysera_email']))
+    update_option('paysera_email', sanitize_text_field($_POST['paysera_email']));
+
   // Display the home page
   include 'home-page.php';
 }
@@ -63,32 +71,34 @@ function hosts_page_content() {
     switch ($_POST['action']) {
 			case 'add':
         if (!validate_fields(['name', 'host', 'description'], $errors)) break;
-				$name = sanitize_text_field($_POST['name']);
-				$host = sanitize_text_field($_POST['host']);
+				$name              = sanitize_text_field($_POST['name']);
+				$host              = sanitize_text_field($_POST['host']);
 				$preview_image_url = sanitize_textarea_field($_POST['preview_image_url']);
-				// $cookie = sanitize_text_field($_POST['cookie']);
-				$cookie = $_POST['cookie'];
-        $cookie = empty($cookie) ? null : $cookie;
-        $blocked_routes = sanitize_textarea_field($_POST['blocked_routes']);
-        $blocked_routes = empty($blocked_routes) ? null : $blocked_routes;
-				$description = sanitize_textarea_field($_POST['description']);
-				$wpdb->insert($table_name, compact('name', 'host', 'preview_image_url', 'cookie', 'blocked_routes', 'description'));
-				break;
+				$cookie            = $_POST['cookie'];
+        $cookie            = empty($cookie) ? null : $cookie;
+        $blocked_urls      = $_POST['blocked_urls'];
+        $blocked_urls      = empty($blocked_urls) ? null : $blocked_urls;
+				$description       = sanitize_textarea_field($_POST['description']);
+
+        $wpdb->insert($table_name, compact('name', 'host', 'preview_image_url', 'cookie', 'blocked_urls', 'description'));
+
+        break;
 
 			case 'edit':
         if (!validate_fields(['name', 'host', 'description'], $errors)) break;
-				$id = intval($_POST['id']);
-				$name = sanitize_text_field($_POST['name']);
-				$host = sanitize_text_field($_POST['host']);
+				$id                = intval($_POST['id']);
+				$name              = sanitize_text_field($_POST['name']);
+				$host              = sanitize_text_field($_POST['host']);
 				$preview_image_url = sanitize_textarea_field($_POST['preview_image_url']);
-				// $cookie = sanitize_textarea_field($_POST['cookie']);
-				$cookie = $_POST['cookie'];
-        $cookie = empty($cookie) ? null : $cookie;
-        $blocked_routes = sanitize_textarea_field($_POST['blocked_routes']);
-        $blocked_routes = empty($blocked_routes) ? null : $blocked_routes;
-				$description = sanitize_textarea_field($_POST['description']);
-				$wpdb->update($table_name, compact('name', 'host', 'preview_image_url', 'cookie', 'blocked_routes', 'description'), ['id' => $id]);
-				break;
+				$cookie            = $_POST['cookie'];
+        $cookie            = empty($cookie) ? null : $cookie;
+        $blocked_urls      = $_POST['blocked_urls'];
+        $blocked_urls      = empty($blocked_urls) ? null : $blocked_urls;
+				$description       = sanitize_textarea_field($_POST['description']);
+
+				$wpdb->update($table_name, compact('name', 'host', 'preview_image_url', 'cookie', 'blocked_urls', 'description'), ['id' => $id]);
+
+        break;
 
 			case 'delete':
 				$id = intval($_POST['id']);
@@ -112,16 +122,18 @@ function offers_page_content() {
 		switch ($_POST['action']) {
 			case 'add':
         if (!validate_fields(['host_id', 'description', 'prices', 'status'], $errors)) break;
-				$host_id = intval($_POST['host_id']);
+
+				$host_id     = intval($_POST['host_id']);
 				$description = sanitize_textarea_field($_POST['description']);
-				$pricesText = wp_unslash($_POST['prices']); // Remove slashes from input if magic quotes are enabled
-        $pricesText = htmlspecialchars_decode($pricesText); // Decode any HTML entities
-				$prices = (array) json_decode($pricesText);
-				if (json_last_error() !== JSON_ERROR_NONE) {
+				$pricesText  = wp_unslash($_POST['prices']); // Remove slashes from input if magic quotes are enabled
+        $pricesText  = htmlspecialchars_decode($pricesText); // Decode any HTML entities
+				$prices      = (array) json_decode($pricesText);
+				$status      = sanitize_text_field($_POST['status']);
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
 					$errors['prices'] = 'Invalid JSON format in prices field "' . $pricesText .'"';
 					break;
 				}
-				$status = sanitize_text_field($_POST['status']);
 
         $id = $wpdb->insert($table_name, compact('host_id', 'description', 'status'));
 
@@ -135,17 +147,19 @@ function offers_page_content() {
 
 			case 'edit':
         if (!validate_fields(['id', 'host_id', 'description', 'prices', 'status'], $errors)) break;
-				$id = intval($_POST['id']);
-				$host_id = intval($_POST['host_id']);
+
+				$id          = intval($_POST['id']);
+				$host_id     = intval($_POST['host_id']);
 				$description = sanitize_textarea_field($_POST['description']);
-				$pricesText = wp_unslash($_POST['prices']); // Remove slashes from input if magic quotes are enabled
-        $pricesText = htmlspecialchars_decode($pricesText); // Decode any HTML entities
-				$prices = (array) json_decode($pricesText);
-				if (json_last_error() !== JSON_ERROR_NONE) {
+				$pricesText  = wp_unslash($_POST['prices']); // Remove slashes from input if magic quotes are enabled
+        $pricesText  = htmlspecialchars_decode($pricesText); // Decode any HTML entities
+				$prices      = (array) json_decode($pricesText);
+				$status      = sanitize_text_field($_POST['status']);
+
+        if (json_last_error() !== JSON_ERROR_NONE) {
 					$errors['prices'] = 'Invalid JSON format in prices field "' . $pricesText .'"';
 					break;
 				}
-				$status = sanitize_text_field($_POST['status']);
 
 				$wpdb->update($table_name, compact('host_id', 'description', 'status'), ['id' => $id]);
 
